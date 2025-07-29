@@ -31,6 +31,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObserver {
   bool _isTracking = false;
+  bool _isWithinGeoFence = false;
 
   StreamSubscription<Position>? _positionStream;
 
@@ -87,7 +88,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
       final distance = Geolocator.distanceBetween(pos.latitude, pos.longitude, loc.latitude, loc.longitude);
 
-      logPrint(distance);
+      logPrint("Distance from Geo-fence: $distance\nGeo-fence: ${loc.radius}");
 
       final isInside = distance <= loc.radius;
       if (isInside) {
@@ -105,11 +106,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       }
     }
 
+    logPrint("Is within Geo-fence: $insideAny");
+
     if (!insideAny) {
+      _isWithinGeoFence = false;
+      // Func.showToastification(
+      //   title: "Info",
+      //   subTitle: "You are out of geo-fence radius!",
+      // );
+
       if (_entryTimes['traveling'] == null) {
         _entryTimes['traveling'] = now;
       }
     } else {
+      _isWithinGeoFence = true;
+
       if (_entryTimes['traveling'] != null) {
         final entry = _entryTimes['traveling']!;
         final spent = now.difference(entry);
@@ -129,11 +140,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     logPrint(savedLocations.map((e) => e.name).toList());
 
     setState(() {
-      // _locations = savedLocations;
       ref.read(locationsProvider.notifier).addLocations(savedLocations);
     });
 
-    logPrint("Loaded ${ref.watch(locationsProvider).value?.length} locations from Hive.");
+    logPrint("Number of locations loaded from Hive ${ref.watch(locationsProvider).value?.length}.");
   }
 
   Future<void> _saveLocationAtCurrent() async {
@@ -292,7 +302,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Row(
                             children: [
-                              Icon(Icons.history),
+                              Icon(Icons.location_searching),
                               const SizedBox(width: 5),
                               Text("Edit Geo-Fence"),
                             ],
@@ -354,7 +364,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                                         textAlign: TextAlign.start,
                                         TextSpan(
                                           children: [
-                                            TextSpan(text: "Geo-Fence: "),
+                                            TextSpan(text: "Geo-Fence Radius: "),
                                             TextSpan(
                                               text: ref.watch(locationsProvider).value != null && ref.watch(locationsProvider).value!.isEmpty
                                                   ? "50.0 meters\n"
@@ -364,6 +374,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
+                                            if (ref.watch(locationsProvider).value != null && ref.watch(locationsProvider).value!.isNotEmpty)
+                                              TextSpan(text: "Coordinates: "),
+                                            if (ref.watch(locationsProvider).value != null && ref.watch(locationsProvider).value!.isNotEmpty)
+                                              TextSpan(
+                                                text: _isWithinGeoFence ? "Is Within Geo-Fence\n" : "Out of Geo-Fence range\n",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
                                             TextSpan(text: "Tracking...\n"),
                                             TextSpan(
                                               text: "${ref.watch(trackingProvider).value}",
