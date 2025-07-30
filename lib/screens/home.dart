@@ -375,10 +375,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                                               ),
                                             ),
                                             if (ref.watch(locationsProvider).value != null && ref.watch(locationsProvider).value!.isNotEmpty)
-                                              TextSpan(text: "Coordinates: "),
+                                              TextSpan(text: "Coordinates Is "),
                                             if (ref.watch(locationsProvider).value != null && ref.watch(locationsProvider).value!.isNotEmpty)
                                               TextSpan(
-                                                text: _isWithinGeoFence ? "Is Within Geo-Fence\n" : "Out of Geo-Fence range\n",
+                                                text: _isWithinGeoFence ? "Within Geo-Fence: True\n" : "Out of Geo-Fence range\n",
                                                 style: TextStyle(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w600,
